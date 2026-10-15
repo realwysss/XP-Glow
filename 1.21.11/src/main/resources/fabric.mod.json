@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "xpglow",
+	"version": "${version}",
+	"name": "XP Glow",
+	"description": "experience orbs glow with a cheap shader glow. color, size, strength, effects and range in the settings (key O).",
+	"authors": ["wysss"],
+	"contact": {"sources": "https://github.com/realwysss/XP-Glow"},
+	"license": "All-Rights-Reserved",
+	"icon": "assets/xpglow/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["dev.xpgl.XpGl"],
+		"modmenu": ["dev.xpgl.ModmenuIntgr"]
+	},
+	"mixins": [
+		{
+			"config": "xpglow.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"suggests": {
+		"modmenu": "*"
+	},
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"cloth-config": "*",
+		"minecraft": ">=1.21.11 <1.22",
+		"java": ">=21"
+	}
+}

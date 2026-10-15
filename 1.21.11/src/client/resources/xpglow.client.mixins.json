@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "package": "dev.xpgl.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "LvRdMxn"
+  ]
+}
