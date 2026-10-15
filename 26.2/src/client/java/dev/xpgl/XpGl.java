@@ -12,7 +12,7 @@ public class XpGl implements ClientModInitializer {
 		Cfg.ld();
 		KeyMapping k = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.xpglow.open", InputConstants.KEY_O, KeyMapping.Category.register(Identifier.fromNamespaceAndPath("xpglow", "main"))));
 		ClientTickEvents.END_CLIENT_TICK.register(m -> {
-			while (k.consumeClick()) if (m.gui.screen() == null) m.gui.setScreen(CfgScr.mk(null));
+			while (k.consumeClick()) if (m.gui.screen() == null) m.gui.setScreen(new dev.xpgl.ui.Panel(null));
 		});
 	}
 }

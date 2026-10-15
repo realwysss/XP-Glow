@@ -3,6 +3,7 @@
   "package": "dev.xpgl.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "LvRdMxn"
+    "LvRdMxn",
+    "FrostMxn"
   ]
 }
