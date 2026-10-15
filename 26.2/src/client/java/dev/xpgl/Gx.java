@@ -23,7 +23,7 @@ import org.lwjgl.system.MemoryStack;
 public class Gx {
 	static final int SZ = (40 + Gk.MAX * 8) * 4;
 	static final RenderPipeline[] pp = new RenderPipeline[2];
-	static GpuBuffer ub;
+	static final GpuBuffer[] ub = new GpuBuffer[2];
 
 	static RenderTarget main() {
 		return Minecraft.getInstance().gameRenderer.mainRenderTarget();
@@ -49,8 +49,22 @@ public class Gx {
 		return pp[blend];
 	}
 
-	static void draw(Matrix4f rot, Matrix4f proj, int n, float[] a, float[] b, float fal, int blend, float t) {
-		if (ub == null) ub = RenderSystem.getDevice().createBuffer(() -> "xpglow ubo", GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, SZ);
+	static GpuBuffer buf(int i) {
+		if (ub[i] == null) ub[i] = RenderSystem.getDevice().createBuffer(() -> "xpglow ubo", GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, SZ);
+		return ub[i];
+	}
+
+	static void warm() {
+		try {
+			buf(0);
+			buf(1);
+			RenderSystem.getDevice().precompilePipeline(pipe(0));
+			RenderSystem.getDevice().precompilePipeline(pipe(1));
+		} catch (Exception e) {
+		}
+	}
+
+	static void draw(Matrix4f rot, Matrix4f proj, int n, float[] a, float[] b, float fal, int blend, float t, int layer) {
 		RenderTarget m = main();
 		try (MemoryStack st = MemoryStack.stackPush()) {
 			ByteBuffer d = st.calloc(SZ);
@@ -63,11 +77,11 @@ public class Gx {
 				d.putFloat(o, a[i * 4]).putFloat(o + 4, a[i * 4 + 1]).putFloat(o + 8, a[i * 4 + 2]).putFloat(o + 12, a[i * 4 + 3]);
 				d.putFloat(o + 16, b[i * 4]).putFloat(o + 20, b[i * 4 + 1]).putFloat(o + 24, b[i * 4 + 2]);
 			}
-			RenderSystem.getDevice().createCommandEncoder().writeToBuffer(ub.slice(), d);
+			RenderSystem.getDevice().createCommandEncoder().writeToBuffer(buf(layer).slice(), d);
 		}
 		try (RenderPass rp = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "xpglow", m.getColorTextureView(), Optional.empty())) {
 			rp.setPipeline(pipe(blend));
-			rp.setUniform("GlowInfo", ub);
+			rp.setUniform("GlowInfo", buf(layer));
 			rp.bindTexture("DepthSampler", m.getDepthTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
 			rp.draw(n * 6, 1, 0, 0);
 		}

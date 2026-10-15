@@ -55,7 +55,16 @@ public class Gx {
 		return pp[blend];
 	}
 
-	static void draw(Matrix4f rot, Matrix4f proj, int n, float[] a, float[] b, float fal, int blend, float t) {
+	static void warm() {
+		try {
+			if (ub == null) ub = new MappableRingBuffer(() -> "xpglow ubo", 130, SZ);
+			RenderSystem.getDevice().precompilePipeline(pipe(0));
+			RenderSystem.getDevice().precompilePipeline(pipe(1));
+		} catch (Exception e) {
+		}
+	}
+
+	static void draw(Matrix4f rot, Matrix4f proj, int n, float[] a, float[] b, float fal, int blend, float t, int layer) {
 		if (ub == null) ub = new MappableRingBuffer(() -> "xpglow ubo", 130, SZ);
 		RenderTarget m = Minecraft.getInstance().getMainRenderTarget();
 		CommandEncoder ce = RenderSystem.getDevice().createCommandEncoder();

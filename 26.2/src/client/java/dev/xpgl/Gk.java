@@ -11,10 +11,13 @@ public class Gk {
 	static int n;
 	static double cx, cy, cz;
 	static float fx, fy, fz, rng, t, pt, ppu;
+	static Lay cur;
+	public static int li;
+	static boolean warm;
 	public static int drawn;
 
 	public static void add(double x, double y, double z, float size, int col, float k, int id) {
-		Cfg c = Cfg.c;
+		Lay c = cur;
 		float dx = (float) (x - cx), dy = (float) (y - cy), dz = (float) (z - cz);
 		float d2 = dx * dx + dy * dy + dz * dz;
 		if (d2 > rng * rng) return;
@@ -77,22 +80,34 @@ public class Gk {
 	}
 
 	public static void run(Matrix4f rot, Matrix4f proj, Vec3 p, float ptk) {
+		if (!warm) {
+			warm = true;
+			Gx.warm();
+		}
 		Cfg c = Cfg.c;
-		if (!c.on || c.str <= 0) return;
+		drawn = 0;
+		if (!c.on) return;
 		cx = p.x;
 		cy = p.y;
 		cz = p.z;
 		fx = -rot.m02();
 		fy = -rot.m12();
 		fz = -rot.m22();
-		rng = c.rng;
 		ppu = proj.m11() * Gx.hh() * 0.5f;
 		pt = ptk;
-		t = (float) ((System.nanoTime() - Cfg.T0) / 1e9 * c.spd / 100.0);
-		n = 0;
-		Em.gather();
-		drawn = n;
-		if (n == 0) return;
-		Gx.draw(rot, proj, n, a, b, c.fal / 100f * 2f, c.blend, t);
+		Lay[] ls = c.layers();
+		for (int k = 0; k < ls.length; k++) {
+			Lay l = ls[k];
+			if (!l.on || l.str <= 0) continue;
+			cur = l;
+			li = k;
+			rng = l.rng;
+			t = (float) ((System.nanoTime() - Cfg.T0) / 1e9 * l.spd / 100.0);
+			n = 0;
+			Em.gather();
+			drawn += n;
+			if (n == 0) continue;
+			Gx.draw(rot, proj, n, a, b, l.fal / 100f * 2f, l.blend, t, k);
+		}
 	}
 }

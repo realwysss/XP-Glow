@@ -8,9 +8,11 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
 
 public class XpGl implements ClientModInitializer {
+	public static KeyMapping key;
+
 	public void onInitializeClient() {
 		Cfg.ld();
-		KeyMapping k = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.xpglow.open", InputConstants.KEY_O, KeyMapping.Category.register(Identifier.fromNamespaceAndPath("xpglow", "main"))));
+		KeyMapping k = key = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.xpglow.open", InputConstants.KEY_O, KeyMapping.Category.register(Identifier.fromNamespaceAndPath("xpglow", "main"))));
 		ClientTickEvents.END_CLIENT_TICK.register(m -> {
 			while (k.consumeClick()) if (m.screen == null) m.setScreen(new dev.xpgl.ui.Panel(null));
 		});

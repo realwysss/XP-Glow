@@ -11,9 +11,9 @@ public class Em {
 		Minecraft m = Minecraft.getInstance();
 		if (m.level == null) return;
 		for (Entity e : m.level.entitiesForRendering()) {
-			if (!(e instanceof ExperienceOrb)) continue;
+			if (!(e instanceof ExperienceOrb) || e.isRemoved()) continue;
 			Vec3 p = e.getPosition(Gk.pt);
-			Gk.add(p.x, p.y + e.getBbHeight() * 0.5, p.z, 0.8f, Cfg.c.oc ? orb(e.tickCount + Gk.pt) : Cfg.c.col, 1f, e.getId());
+			Gk.add(p.x, p.y + e.getBbHeight() * 0.5, p.z, 0.8f, Cfg.c.oc ? orb(e.tickCount + Gk.pt) : Gk.cur.col, 1f, e.getId());
 		}
 	}
 
