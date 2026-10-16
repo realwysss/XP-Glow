@@ -9,10 +9,14 @@ import net.fabricmc.loader.api.FabricLoader;
 public class Cfg extends Lay {
 	public boolean oc = true;
 
-	public static final long T0 = System.nanoTime();
+	public static long T0 = System.nanoTime();
 	static final Gson G = new GsonBuilder().setPrettyPrinting().create();
 	static final Path P = FabricLoader.getInstance().getConfigDir().resolve("xpglow.json");
 	public static Cfg c = new Cfg();
+
+	public static String json() {
+		return G.toJson(c);
+	}
 
 	public Lay[] layers() {
 		return new Lay[]{this};

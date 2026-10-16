@@ -14,7 +14,10 @@ public class XpGl implements ClientModInitializer {
 		Cfg.ld();
 		KeyMapping k = key = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.xpglow.open", InputConstants.KEY_O, KeyMapping.Category.register(Identifier.fromNamespaceAndPath("xpglow", "main"))));
 		ClientTickEvents.END_CLIENT_TICK.register(m -> {
-			while (k.consumeClick()) if (m.screen == null) m.setScreen(new dev.xpgl.ui.Panel(null));
+			while (k.consumeClick()) if (m.screen == null) {
+				if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("wysslib")) m.setScreen(new dev.xpgl.ui.Panel(null));
+				else if (m.player != null) m.player.displayClientMessage(net.minecraft.network.chat.Component.literal("XP Glow needs Wysss Library to open its menu"), true);
+			}
 		});
 	}
 }

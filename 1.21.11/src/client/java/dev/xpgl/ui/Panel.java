@@ -139,9 +139,11 @@ public final class Panel extends Screen implements Canvas {
         return font.width(s);
     }
 
+    private final java.util.Map<String, net.minecraft.world.entity.Entity> ents = new java.util.HashMap<>();
+
     @Override
     public void item(String id, float x, float y, float size) {
-        net.minecraft.world.item.Item it = id.equals("anchor") ? net.minecraft.world.item.Items.RESPAWN_ANCHOR : net.minecraft.world.item.Items.END_CRYSTAL;
+        net.minecraft.world.item.Item it = id.equals("anchor") ? net.minecraft.world.item.Items.RESPAWN_ANCHOR : id.equals("glowstone") ? net.minecraft.world.item.Items.GLOWSTONE : net.minecraft.world.item.Items.END_CRYSTAL;
         g.pose().pushMatrix();
         g.pose().translate(x, y);
         g.pose().scale(size / 16f, size / 16f);
@@ -152,7 +154,8 @@ public final class Panel extends Screen implements Canvas {
     @Override
     public boolean player(float x, float y, float w, float h) {
         if (minecraft.player == null) return false;
-        net.minecraft.client.gui.screens.inventory.InventoryScreen.renderEntityInInventoryFollowsMouse(g, (int) x, (int) y, (int) (x + w), (int) (y + h), (int) (h * 0.42f), 0.0625f, x + w / 2f, y + h * 0.3f, minecraft.player);
+        float sw = (float) Math.sin(System.nanoTime() / 1.1e9) * 90f;
+        net.minecraft.client.gui.screens.inventory.InventoryScreen.renderEntityInInventoryFollowsMouse(g, (int) x, (int) y, (int) (x + w), (int) (y + h), (int) (h * 0.42f), 0.0625f, x + w / 2f + sw, y + h * 0.3f, minecraft.player);
         return true;
     }
 
@@ -161,6 +164,87 @@ public final class Panel extends Screen implements Canvas {
         if (minecraft.player != null) {
             minecraft.player.hurtDuration = 10;
             minecraft.player.hurtTime = 10;
+        }
+    }
+
+    private net.minecraft.world.entity.Entity mkEnt(String kind, int n) {
+        net.minecraft.world.level.Level lv = minecraft.level;
+        if (kind.equals("crystal")) {
+            net.minecraft.world.entity.boss.enderdragon.EndCrystal c = new net.minecraft.world.entity.boss.enderdragon.EndCrystal(lv, 0, 0, 0);
+            c.setShowBottom(true);
+            return c;
+        }
+        if (kind.equals("xp")) return new net.minecraft.world.entity.ExperienceOrb(lv, 0, 0, 0, n);
+        return null;
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public boolean ent(String kind, int n, float x, float y, float w, float h, float yaw, float age) {
+        if (minecraft.level == null) return false;
+        try {
+            net.minecraft.world.entity.Entity e = ents.computeIfAbsent(kind + n, k -> mkEnt(kind, n));
+            if (e == null) return false;
+            net.minecraft.client.renderer.entity.EntityRenderer r = minecraft.getEntityRenderDispatcher().getRenderer(e);
+            net.minecraft.client.renderer.entity.state.EntityRenderState st = r.createRenderState(e, 1f);
+            st.lightCoords = 0xF000F0;
+            st.shadowPieces.clear();
+            st.outlineColor = 0;
+            st.ageInTicks = age;
+            org.joml.Quaternionf q = new org.joml.Quaternionf().rotateZ((float) Math.PI).rotateY(yaw);
+            org.joml.Quaternionf cam = new org.joml.Quaternionf().rotateX(0.4f);
+            q.mul(cam);
+            g.submitEntityRenderState(st, h * (kind.equals("xp") ? 4.2f : 0.3f), new org.joml.Vector3f(0f, st.boundingBoxHeight / 2f + (kind.equals("xp") ? 0f : 0.15f), 0f), q, cam, (int) x, (int) y, (int) (x + w), (int) (y + h));
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private void face(String atlas, String name, float[] p, int col) {
+        net.minecraft.client.renderer.texture.TextureAtlas at = minecraft.getAtlasManager().getAtlasOrThrow(Identifier.withDefaultNamespace(atlas));
+        net.minecraft.client.renderer.texture.TextureAtlasSprite sp = at.getSprite(Identifier.withDefaultNamespace(name));
+        Matrix3x2f pose = new Matrix3x2f(g.pose()).mul(new Matrix3x2f(p[2] - p[0], p[3] - p[1], p[6] - p[0], p[7] - p[1], p[0], p[1]));
+        g.guiRenderState.submitGuiElement(new Quad(RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(at.getTextureView(), at.getSampler()), pose, sp.getU0(), sp.getU1(), sp.getV0(), sp.getV1(), col, col, new ScreenRectangle(0, 0, 1, 1).transformMaxBounds(pose)));
+    }
+
+    @Override
+    public boolean blk(String kind, int n, float cx, float cy, float s, float yaw) {
+        if (!kind.equals("anchor")) return false;
+        try {
+            float c = (float) Math.cos(yaw), sn = (float) Math.sin(yaw);
+            float ca = 0.8191f, sa = 0.5736f;
+            float[][] cor = new float[8][];
+            for (int i = 0; i < 8; i++) {
+                float X = (i & 1) == 0 ? -0.5f : 0.5f, Y = (i & 2) == 0 ? -0.5f : 0.5f, Z = (i & 4) == 0 ? -0.5f : 0.5f;
+                float rx = X * c + Z * sn, rz = -X * sn + Z * c;
+                cor[i] = new float[]{cx + rx * s, cy - (Y * ca - rz * sa) * s};
+            }
+            int[][] fs = {{2, 3, 7, 6}, {3, 2, 0, 1}, {6, 7, 5, 4}, {2, 6, 4, 0}, {7, 3, 1, 5}};
+            float[][] nr = {{0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, 0}, {1, 0, 0}};
+            String side = "block/respawn_anchor_side" + n;
+            String[] nm = {n > 0 ? "block/respawn_anchor_top" : "block/respawn_anchor_top_off", side, side, side, side};
+            for (int k = 0; k < 5; k++) {
+                float nz = -nr[k][0] * sn + nr[k][2] * c;
+                if (nr[k][1] * sa + nz * ca <= 0.01f) continue;
+                int[] f = fs[k];
+                int sh = k == 0 ? 0xFFFFFFFF : Math.abs(nr[k][0]) > 0 ? 0xFFA8A8A8 : 0xFFD2D2D2;
+                face("blocks", nm[k], new float[]{cor[f[0]][0], cor[f[0]][1], cor[f[1]][0], cor[f[1]][1], cor[f[2]][0], cor[f[2]][1], cor[f[3]][0], cor[f[3]][1]}, sh);
+            }
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    @Override
+    public void spr(String name, float x, float y, float size, int argb) {
+        try {
+            net.minecraft.client.renderer.texture.TextureAtlas at = minecraft.getAtlasManager().getAtlasOrThrow(Identifier.withDefaultNamespace("particles"));
+            net.minecraft.client.renderer.texture.TextureAtlasSprite sp = at.getSprite(Identifier.withDefaultNamespace(name));
+            Matrix3x2f pose = new Matrix3x2f(g.pose()).translate(x, y).scale(size, size);
+            g.guiRenderState.submitGuiElement(new Quad(RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(at.getTextureView(), at.getSampler()), pose, sp.getU0(), sp.getU1(), sp.getV0(), sp.getV1(), argb, argb, new ScreenRectangle(0, 0, 1, 1).transformMaxBounds(pose)));
+        } catch (Throwable t) {
         }
     }
 

@@ -25,6 +25,17 @@ public interface Canvas {
     default void hurt() {
     }
 
+    default boolean ent(String kind, int n, float x, float y, float w, float h, float yaw, float age) {
+        return false;
+    }
+
+    default boolean blk(String kind, int n, float cx, float cy, float s, float yaw) {
+        return false;
+    }
+
+    default void spr(String name, float x, float y, float size, int argb) {
+    }
+
     default void fill(float x, float y, float w, float h, float r, int argb) {
         fill(x, y, w, h, r, argb, argb);
     }

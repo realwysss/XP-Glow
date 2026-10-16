@@ -20,7 +20,8 @@
 		}
 	],
 	"suggests": {
-		"modmenu": "*"
+		"modmenu": "*",
+		"wysslib": "*"
 	},
 	"depends": {
 		"fabricloader": ">=0.16.0",

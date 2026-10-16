@@ -4,7 +4,7 @@
 
 experience orbs glow with a cheap shader glow. every orb shines in its own green and yellow, or in the color you pick.
 
-client side fabric mod for 1.21.11, 26.1 and 26.2. press **O** to open the settings (press it again to close, rebind it in Controls), or use Mod Menu. the settings menu is built into the mod, it only needs fabric api. color picker with hex field, a live preview, sliders and switches.
+client side fabric mod for 1.21.11, 26.1 and 26.2. press **O** to open the settings (press it again to close, rebind it in Controls), or use Mod Menu. the settings menu needs [Wysss Library](https://github.com/realwysss/Wysss-Library) to open (fabric api and Wysss Library). color picker with hex field, a live preview, sliders and switches.
 
 - **orb colors**: the glow takes the green and yellow color the orb shows
 - **color**: any color
@@ -19,9 +19,9 @@ client side fabric mod for 1.21.11, 26.1 and 26.2. press **O** to open the setti
 
 | jar | minecraft |
 |---|---|
-| `xp-glow-mc1.21.11-1.1.0.jar` | 1.21.11 |
-| `xp-glow-mc26.1-1.1.0.jar` | 26.1 |
-| `xp-glow-mc26.2-1.1.0.jar` | 26.2 |
+| `xp-glow-mc1.21.11-1.2.0.jar` | 1.21.11 |
+| `xp-glow-mc26.1-1.2.0.jar` | 26.1 |
+| `xp-glow-mc26.2-1.2.0.jar` | 26.2 |
 
 on the releases page. fabric loader 0.16 or newer, fabric api.
 

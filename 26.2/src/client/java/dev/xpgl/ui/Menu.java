@@ -19,11 +19,11 @@ public final class Menu {
     public static final int TAB = 4;
     public static final int PASTE = 5;
     public static final int COPY = 6;
-    private static final int TEXT = 0xFFF3F4F8;
-    private static final int MUTED = 0xFF9BA1AE;
-    private static final int WELL = 0x42000000;
-    private static final int EDGE = 0x21FFFFFF;
-    private static final int[] BACKDROPS = {0xFF0C0D12, 0xFF3A1F1A, 0xFF2E4A66, 0xFFD8D2C4};
+    private static final int TEXT = 0xFFE6E0F5;
+    private static final int MUTED = 0xFF9A90B8;
+    private static final int WELL = 0x520E0620;
+    private static final int EDGE = 0x30D2BCFF;
+    private static final int[] BACKDROPS = {0xFF140A28, 0xFF3A1F2E, 0xFF2E3F6B, 0xFFCFC6DA};
     private static final String[] BACKDROP_NAMES = {"Night", "Nether", "Sky", "Sand"};
     private static final String[] TABS = {"Glow", "Effects", "Show"};
     private static final String[] SECS = {"Aura", "Inside"};
@@ -57,6 +57,10 @@ public final class Menu {
     private boolean typing;
     private String hex = "";
     private float open;
+    private float tabK = 1f;
+    private float cf = 1f;
+    private int sig;
+    private float sigAt;
     private long last;
     private float dt;
     private float clock;
@@ -91,20 +95,32 @@ public final class Menu {
         hits.clear();
         tip = null;
         open = ease(open, 1f, 9f);
+        tabK = ease(tabK, 1f, 11f);
+        cf = 1f;
         Cfg c = Cfg.c;
         Lay l = cur();
 
         float cw = Math.min(width - 24, 430);
         float ch = Math.min(height - 12, 252);
         float x = (width - cw) / 2f;
-        float y = (height - ch) / 2f;
+        float y = (height - ch) / 2f + (1f - open) * 16f;
         int acc = accent();
 
-        g.fill(0, 0, width, height, 0, fade(0x22000000), fade(0x7A000000));
-        g.shadow(x + cw * 0.18f, y + ch * 0.12f, cw * 0.64f, ch * 0.64f, 60, 70, fade(Colors.alpha(acc, 0.13f)));
-        g.shadow(x, y + 10, cw, ch, 16, 28, fade(0x99000000));
-        g.fill(x, y, cw, ch, 14, fade(0xAE262833), fade(0xC20F1015));
-        g.ring(x, y, cw, ch, 14, 1, fade(0x5CFFFFFF), fade(0x0FFFFFFF));
+        int sg = java.util.Objects.hash(Cfg.json(), tab, sec, sub);
+        if (sg != sig) {
+            if (sig != 0 && clock - sigAt > 0.3f) {
+                hitT = -9f;
+                sigAt = clock;
+            }
+            sig = sg;
+        }
+
+        g.fill(0, 0, width, height, 0, fade(0x4A0A0418), fade(0xA8050210));
+        g.shadow(x + cw * 0.12f, y + ch * 0.1f, cw * 0.76f, ch * 0.76f, 60, 80, fade(Colors.alpha(acc, 0.20f)));
+        g.shadow(x, y + 10, cw, ch, 16, 28, fade(0xAA05010F));
+        g.fill(x, y, cw, ch, 14, fade(0xB4301860), fade(0xD0140A2C));
+        g.fill(x + 1, y + 1, cw - 2, ch * 0.45f, 13, fade(0x22E0C8FF), fade(0x04B08CFF));
+        g.ring(x, y, cw, ch, 14, 1, fade(0x70E6D2FF), fade(0x18A078FF));
 
         header(g, c, x, y, cw);
         g.fill(x + 16, y + 32, cw - 32, 1, 0, fade(0x16FFFFFF));
@@ -119,15 +135,19 @@ public final class Menu {
         float rw = x + cw - 14 - rx;
         segmented(g, "tabs", rx, top, rw, 18, TABS, tab, i -> {
             commitHex();
+            if (tab != i) tabK = 0f;
             tab = i;
         });
         float cy = top + 26;
         float space = bottom - cy;
+        float so = (1f - tabK) * 18f;
+        cf = tabK;
         switch (tab) {
-            case 0 -> glow(g, l, rx, cy, rw, space);
-            case 1 -> effects(g, l, rx, cy, rw, space);
-            default -> show(g, c, l, rx, cy, rw, space);
+            case 0 -> glow(g, l, rx + so, cy, rw, space);
+            case 1 -> effects(g, l, rx + so, cy, rw, space);
+            default -> show(g, c, l, rx + so, cy, rw, space);
         }
+        cf = 1f;
 
         footer(g, x, y + ch - 28, cw);
 
@@ -136,8 +156,8 @@ public final class Menu {
             float tx = (float) Math.min(mx + 10, width - tw - 4);
             float ty = (float) Math.max(my - 18, 2);
             g.shadow(tx, ty, tw, 15, 5, 6, fade(0x90000000));
-            g.fill(tx, ty, tw, 15, 5, fade(0xEE2A2C36), fade(0xEE1B1C23));
-            g.ring(tx, ty, tw, 15, 5, 1, fade(0x33FFFFFF), fade(0x0FFFFFFF));
+            g.fill(tx, ty, tw, 15, 5, fade(0xEE3A2268), fade(0xEE1C0F3A));
+            g.ring(tx, ty, tw, 15, 5, 1, fade(0x44E6D2FF), fade(0x12A078FF));
             g.text(tip, tx + 6, ty + 4, fade(TEXT));
         }
     }
@@ -154,13 +174,13 @@ public final class Menu {
     }
 
     private void preview(Canvas g, Cfg c, Lay l, float x, float y, float w, float h) {
-        g.fill(x, y, w, h, 10, fade(0x30000000), fade(0x58000000));
+        g.fill(x, y, w, h, 10, fade(0x38100620), fade(0x66080214));
         float bgT = anim("bg", backdrop, 10f);
         int from = BACKDROPS[(int) Math.floor(bgT) % BACKDROPS.length];
         int to = BACKDROPS[(int) Math.ceil(bgT) % BACKDROPS.length];
         int bg = Colors.mix(from, to, bgT - (float) Math.floor(bgT));
         g.fill(x + 3, y + 3, w - 6, h - 6, 8, fade(Colors.alpha(bg, 0.9f)), fade(Colors.mix(bg, 0xFF000000, 0.35f)));
-        g.ring(x, y, w, h, 10, 1, fade(0x38FFFFFF), fade(0x0AFFFFFF));
+        g.ring(x, y, w, h, 10, 1, fade(0x48E6D2FF), fade(0x0EA078FF));
         int label = Colors.luma(bg) > 0.55f ? 0xAA000000 : 0x99FFFFFF;
         g.text("Preview", x + 10, y + 9, fade(label));
 
@@ -214,7 +234,7 @@ public final class Menu {
         for (int i = 0; i < 5; i++) {
             float f = 1f - i / 5f;
             float r = base * (0.35f + 0.65f * f) * soft;
-            float a = Colors.clamp(k * 0.3f * (1f - f * 0.35f), 0f, 1f);
+            float a = Colors.clamp(k * 0.9f * (1f - f * 0.35f), 0f, 1f);
             g.shadow(cx - r * 0.3f, cy - r * 0.3f, r * 0.6f, r * 0.6f, r * 0.3f, r * 0.9f + 4, fade(Colors.alpha(0xFF000000 | col, a)));
         }
     }
@@ -234,23 +254,26 @@ public final class Menu {
 
     private void subject(Canvas g, Cfg c, Lay l, float cx, float cy, float s, float px, float py, float pw, float ph) {
         float k = ak(l);
-        float[][] ps = sub == 0 ? new float[][]{{0f, 0f}} : sub == 1 ? new float[][]{{-0.24f, 0.12f}, {0.22f, -0.1f}, {0f, 0.3f}}
-            : new float[][]{{-0.3f, 0.2f}, {0f, 0.28f}, {0.3f, 0.2f}, {-0.16f, 0f}, {0.16f, 0f}, {-0.3f, -0.2f}, {0f, -0.12f}, {0.3f, -0.2f}, {0f, -0.32f}};
-        float d = sub == 0 ? s * 0.34f : sub == 1 ? s * 0.24f : s * 0.17f;
-        float[] xs = new float[ps.length];
-        float[] ys = new float[ps.length];
-        int[] cs = new int[ps.length];
-        for (int i = 0; i < ps.length; i++) {
-            xs[i] = cx + ps[i][0] * s;
-            ys[i] = cy + ps[i][1] * s + (float) Math.sin(clock * 2f + i) * 2f;
-            cs[i] = c.oc ? orbCol(clock * 4f + i * 7f) : acol(l);
-            halo(g, l, xs[i], ys[i], d * 1.8f * (l.rad / 100f) * asz(l), k, cs[i]);
+        int[][] vs = {{1}, {3, 1, 6}, {1, 3, 6, 11, 2, 1, 3, 6, 1}};
+        float[][][] ps = {{{0f, 0f}}, {{-0.22f, 0.1f}, {0.2f, -0.12f}, {0f, 0.3f}},
+            {{-0.3f, 0.2f}, {0f, 0.28f}, {0.3f, 0.2f}, {-0.16f, 0f}, {0.16f, 0f}, {-0.3f, -0.2f}, {0f, -0.12f}, {0.3f, -0.2f}, {0f, -0.32f}}};
+        float[][] pp = ps[sub];
+        float d = sub == 0 ? s * 0.5f : sub == 1 ? s * 0.38f : s * 0.27f;
+        float[] xs = new float[pp.length];
+        float[] ys = new float[pp.length];
+        int[] cs = new int[pp.length];
+        for (int i = 0; i < pp.length; i++) {
+            xs[i] = cx + pp[i][0] * s;
+            ys[i] = cy + pp[i][1] * s + (float) Math.sin(clock * 2f + i) * 2f;
+            cs[i] = c.oc ? orbCol(clock * 20f + i * 7f) : acol(l);
+            halo(g, l, xs[i], ys[i], d * 1.5f * (l.rad / 100f) * asz(l), k, cs[i]);
         }
-        for (int i = 0; i < ps.length; i++) {
-            int col = 0xFF000000 | cs[i];
-            g.fill(xs[i] - d / 2f, ys[i] - d / 2f, d, d, d / 2f, fade(Colors.mix(col, 0xFFFFFFFF, 0.55f)), fade(col));
-            g.fill(xs[i] - d * 0.25f, ys[i] - d * 0.3f, d * 0.32f, d * 0.32f, d * 0.16f, fade(0xB0FFFFFF));
-            g.ring(xs[i] - d / 2f, ys[i] - d / 2f, d, d, d / 2f, 1, fade(0x55000000));
+        for (int i = 0; i < pp.length; i++) {
+            boolean ok = g.ent("xp", vs[sub][i], xs[i] - d / 2f, ys[i] - d / 2f, d, d, 0f, clock * 20f + i * 11f);
+            if (!ok) {
+                int col = 0xFF000000 | cs[i];
+                g.fill(xs[i] - d / 4f, ys[i] - d / 4f, d / 2f, d / 2f, d / 4f, fade(Colors.mix(col, 0xFFFFFFFF, 0.55f)), fade(col));
+            }
         }
         click("subj", px, py, pw, ph - 24, () -> sub = (sub + 1) % 3);
     }
@@ -336,7 +359,7 @@ public final class Menu {
         float kx = x + 2 + (w - 4 - k) * t;
         float ky = y + (h - k) / 2f;
         g.shadow(kx, ky + 0.5f, k, k, k / 2f, 2, fade(0x70000000));
-        g.fill(kx, ky, k, k, k / 2f, fade(0xFFFFFFFF), fade(0xFFE4E7EE));
+        g.fill(kx, ky, k, k, k / 2f, fade(0xFFF2EDFC), fade(0xFFD4C9EC));
         hits.add(new Hit(id, x - 2, y - 2, w + 4, h + 4, flip, null, null));
     }
 
@@ -357,7 +380,7 @@ public final class Menu {
         float ky = ty + th / 2f - s / 2f;
         if (k > 0.01f) g.fill(kx - 3 * k, ky - 3 * k, s + 6 * k, s + 6 * k, (s + 6 * k) / 2f, fade(Colors.alpha(acc & 0xFFFFFF | 0x40000000, k)));
         g.shadow(kx, ky + 0.5f, s, s, s / 2f, 2.5f, fade(0x80000000));
-        g.fill(kx, ky, s, s, s / 2f, fade(0xFFFFFFFF), fade(0xFFE4E7EE));
+        g.fill(kx, ky, s, s, s / 2f, fade(0xFFF2EDFC), fade(0xFFD4C9EC));
         Drag d = (px, py) -> set.accept(snap(lo + (hi - lo) * Colors.clamp((float) ((px - x) / w), 0f, 1f), step, lo, hi));
         hits.add(new Hit(id, x - 4, ty - 7, w + 8, th + 14, null, d, a -> set.accept(snap(v + (float) Math.signum(a) * step * 5f, step, lo, hi))));
     }
@@ -419,7 +442,7 @@ public final class Menu {
         float mxp = x + hsv[1] * sw;
         float myp = y + (1f - hsv[2]) * h;
         g.shadow(mxp - 4.5f, myp - 4.5f, 9, 9, 4.5f, 2, fade(0x90000000));
-        g.fill(mxp - 4.5f, myp - 4.5f, 9, 9, 4.5f, fade(0xFFFFFFFF));
+        g.fill(mxp - 4.5f, myp - 4.5f, 9, 9, 4.5f, fade(0xFFF2EDFC));
         g.fill(mxp - 3, myp - 3, 6, 6, 3, fade(0xFF000000 | l.col));
         hits.add(new Hit(id + "sv", x, y, sw, h, null, (px, py) -> {
             hsv[1] = Colors.clamp((float) ((px - x) / sw), 0f, 1f);
@@ -431,11 +454,11 @@ public final class Menu {
         float rx = x + sw + 10;
         float rw = w - sw - 10;
         g.shadow(rx, y + 1, rw, 12, 6, 3, fade(0x60000000));
-        g.hue(rx, y, rw, 12, 6, fade(0xFFFFFFFF));
+        g.hue(rx, y, rw, 12, 6, fade(0xFFF2EDFC));
         g.ring(rx, y, rw, 12, 6, 1, fade(0x33FFFFFF), fade(0x14FFFFFF));
         float hx = rx + hsv[0] * rw;
         g.shadow(hx - 3.5f, y - 2, 7, 16, 3.5f, 2, fade(0x90000000));
-        g.fill(hx - 3.5f, y - 2, 7, 16, 3.5f, fade(0xFFFFFFFF), fade(0xFFE4E7EE));
+        g.fill(hx - 3.5f, y - 2, 7, 16, 3.5f, fade(0xFFF2EDFC), fade(0xFFD4C9EC));
         g.fill(hx - 2, y + 0.5f, 4, 11, 2, fade(hueCol));
         hits.add(new Hit(id + "hue", rx - 3, y - 3, rw + 6, 18, null, (px, py) -> {
             hsv[0] = Colors.clamp((float) ((px - rx) / rw), 0f, 0.9999f);
@@ -589,9 +612,16 @@ public final class Menu {
     }
 
     private int accent() {
-        int b = cur().col;
-        int col = 0xFF000000 | b;
-        return Colors.luma(b) < 0.22f ? 0xFF000000 | Colors.mix(col, 0xFFFFFFFF, 0.4f) : col;
+        return 0xFFB06BFF;
+    }
+
+    private float hitK(Canvas g) {
+        if (clock - hitT > 1f) {
+            hitT = clock;
+            g.hurt();
+        }
+        float since = clock - hitT;
+        return since < 0.9f ? 1f - since / 0.9f : 0f;
     }
 
     private boolean hover(float x, float y, float w, float h) {
@@ -611,7 +641,7 @@ public final class Menu {
     }
 
     private int fade(int argb) {
-        return Colors.alpha(argb, open);
+        return Colors.alpha(argb, open * cf);
     }
 
     private static float snap(float v, float step, float lo, float hi) {
